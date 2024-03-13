@@ -1,0 +1,24 @@
+{
+  "name": "square",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && copyfiles ./decl/**/*.d.ts ../configurator/src",
+    "watch": "tsc --watch",
+    "start": "npm run build && node ./util/serve.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "copyfiles": "^2.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.3",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/react": "^18.2.65"
+  }
+}

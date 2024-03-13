@@ -1,0 +1,50 @@
+{
+  "name": "circle",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "decl/index.d.ts",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "react-to-webcomponent": "^2.0.0"
+  },
+  "scripts": {
+    "build": "tsc && copyfiles ./decl/**/*.d.ts ../configurator/src",
+    "watch": "tsc --watch",
+    "start": "npm run rollup && node ./util/serve.js",
+    "rollup": "rollup -c --bundleConfigAsCjs && cd ./dist/esm && copyfiles ./decl/**/*.d.ts ../../../configurator/src"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.62",
+    "@types/react-dom": "^18.2.19",
+    "copyfiles": "^2.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.3",
+    "rollup": "^4.13.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "typescript": "^4"
+  }
+}
