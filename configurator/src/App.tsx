@@ -1,100 +1,141 @@
-import { MouseEvent, createElement, useCallback, useRef, useState } from "react";
 import "./App.css";
-import { Circle, Shape, Square, Vector } from "./Shapes";
+import { MouseEvent, createElement, useCallback, useRef, useState } from "react";
+import { Circle, Shape, Square, Vector, findFirstShapeAtPoint } from "./Shapes";
 import { SquareConfig } from "./decl/square";
-import { CircleConfigProps } from "./decl/circle";
-import { CircleConfigWC2 } from "./decl/circle/circle-config";
+import { CircleConfigProps, CircleConfigWC } from "./decl/circle/circle-config";
 
-function findFirstShapeAtPoint(shapes: Shape[], translations: Vector[], point: Vector) {
-  for (let i = shapes.length - 1; i >= 0; i--) {
-    if (shapes[i].isInside(translations[i], point)) {
-      return shapes[i];
-    }
-  }
-  return null;
-}
-
-function localizeMousePosition(x: number, y: number, svg: SVGSVGElement) {
-  const rect = svg.getBoundingClientRect();
-  return { x: x - rect.left, y: y - rect.top };
-}
-
+/**
+ * Represents a drag operation in progress.
+ */
 type DragOperation = {
+  /**
+   * The shape being dragged.
+   */
   shape: Shape;
+
+  /**
+   * The distance from the shape's origin to the mouse position.
+   */
   distanceFromShapeOrigin: Vector;
 };
 
 function App() {
+  // The shapes to render.
   const [shapes, setShapes] = useState<Shape[]>([new Square(100, "#FF0000"), new Circle(50, "#0000FF")]);
+
+  // The translation of each shape. Must be kept in sync with `shapes`.
   const [translations, setTranslations] = useState<Vector[]>([
     { x: 50, y: 25 },
     { x: 200, y: 200 },
   ]);
+
+  // The currently selected shape.
   const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
+
+  // The drag operation in progress, if any.
   const [dragOperation, setDragOperation] = useState<DragOperation | null>(null);
+
+  // Whether the configuration dialog is open.
   const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
+
+  // Reference to the SVG element used to draw the shapes.
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // Reference to the configuration dialog.
   const configDialogRef = useRef<HTMLDialogElement>(null);
-  const squareConfigRef = useCallback((node: SquareConfig | null) => {
-    if (!selectedShape || !(selectedShape instanceof Square)) {
-      setIsConfiguring(false);
-      return;
+
+  /**
+   * Convert global mouse position to position relative to the given SVG element.
+   */
+  function localizeMousePosition(x: number, y: number) {
+    if (!svgRef.current) {
+      return { x, y };
     }
 
-    if (node) {
+    const rect = svgRef.current.getBoundingClientRect();
+    return { x: x - rect.left, y: y - rect.top };
+  }
+
+  // Helper method to replace a shape in the list of shapes.
+  const replaceShape = useCallback(
+    (oldShape: Shape, newShape: Shape) => {
+      const index = shapes.indexOf(oldShape);
+      const newShapes = [...shapes];
+      newShapes[index] = newShape;
+      setShapes(newShapes);
+      setSelectedShape(newShape);
+    },
+    [shapes]
+  );
+
+  // Callback that is activated when the square configuration component is mounted.
+  // It sets the configuration of the selected shape and opens the configuration dialog.
+  const squareConfigRef = useCallback(
+    (node: SquareConfig | null) => {
+      if (!node || !selectedShape || !(selectedShape instanceof Square)) {
+        // This should never happen, but just in case...
+        setIsConfiguring(false);
+        return;
+      }
+
       node.config = {
         size: (selectedShape as Square).size,
         color: (selectedShape as Square).color,
-        save: c => {
-          const index = shapes.indexOf(selectedShape);
-          const newShapes = [...shapes];
-          newShapes[index] = new Square(c.size, c.color);
-          setShapes(newShapes);
-          setSelectedShape(newShapes[index]);
+        save: (c) => {
+          // Called by the configuration component when the user saves the configuration.
+          replaceShape(selectedShape, new Square(c.size, c.color));
           setIsConfiguring(false);
           configDialogRef.current?.close();
-        }
+        },
       };
-      configDialogRef.current?.showModal();
-    }
-  }, [selectedShape, shapes]);
-  const circleConfigRef = useCallback((node: CircleConfigWC2 | null) => {
-    if (!selectedShape || !(selectedShape instanceof Circle)) {
-      setIsConfiguring(false);
-      return;
-    }
 
-    if (node) {
+      configDialogRef.current?.showModal();
+    },
+    [selectedShape, replaceShape]
+  );
+  const circleConfigRef = useCallback(
+    (node: CircleConfigWC | null) => {
+      if (!node || !selectedShape || !(selectedShape instanceof Circle)) {
+        // This should never happen, but just in case...
+        setIsConfiguring(false);
+        return;
+      }
+
+      // Note that the implementation of circleConfigRef and
+      // squareConfigRef is almost identical. This is just the case
+      // for this simple PoC. In a real-world application, the
+      // configuration components might be very different from each
+      // other.
+
       node.config = {
         radius: (selectedShape as Circle).radius,
         color: (selectedShape as Circle).color,
-        save: c => {
-          const index = shapes.indexOf(selectedShape);
-          const newShapes = [...shapes];
-          newShapes[index] = new Circle(c.radius, c.color);
-          setShapes(newShapes);
-          setSelectedShape(newShapes[index]);
+        save: (c: CircleConfigProps) => {
+          // Called by the configuration component when the user saves the configuration.
+          replaceShape(selectedShape, new Circle(c.radius, c.color));
           setIsConfiguring(false);
           configDialogRef.current?.close();
-        }
+        },
       };
 
       configDialogRef.current?.showModal();
-    }
-  }, [selectedShape, shapes]);
+    },
+    [selectedShape, replaceShape]
+  );
 
+  // Drag & drop logic
   const svgProps = {
     onMouseDown: (e: MouseEvent) => {
       if (!svgRef.current) {
         return;
       }
 
-      const target = findFirstShapeAtPoint(shapes, translations, localizeMousePosition(e.clientX, e.clientY, svgRef.current));
+      const target = findFirstShapeAtPoint(shapes, translations, localizeMousePosition(e.clientX, e.clientY));
 
       // Start dragging only if the target is the selected shape
       if (target && target === selectedShape) {
         const index = shapes.indexOf(target);
-        const point = localizeMousePosition(e.clientX, e.clientY, svgRef.current);
+        const point = localizeMousePosition(e.clientX, e.clientY);
         setDragOperation({
           shape: target,
           distanceFromShapeOrigin: { x: point.x - translations[index].x, y: point.y - translations[index].y },
@@ -109,7 +150,7 @@ function App() {
         return;
       }
 
-      const point = localizeMousePosition(e.clientX, e.clientY, svgRef.current);
+      const point = localizeMousePosition(e.clientX, e.clientY);
       const index = shapes.indexOf(dragOperation.shape);
       const newTranslations = [...translations];
       newTranslations[index] = { x: point.x - dragOperation.distanceFromShapeOrigin.x, y: point.y - dragOperation.distanceFromShapeOrigin.y };
@@ -119,7 +160,7 @@ function App() {
       if (!svgRef.current) {
         return;
       }
-      setSelectedShape(findFirstShapeAtPoint(shapes, translations, localizeMousePosition(e.clientX, e.clientY, svgRef.current)));
+      setSelectedShape(findFirstShapeAtPoint(shapes, translations, localizeMousePosition(e.clientX, e.clientY)));
     },
   };
 
@@ -127,10 +168,6 @@ function App() {
     onClick: () => {
       setIsConfiguring(!isConfiguring);
     },
-  };
-
-  (window as any).globalHandle = function(x: any) {
-    console.log(x);
   };
 
   return (
@@ -145,28 +182,14 @@ function App() {
             <li>Square</li>
             <li>Circle</li>
           </ul>
-          {createElement('web-greeting')}
-          {selectedShape && <button type="button" {...configureProps}>Configure</button>}
+          {selectedShape && (
+            <button type="button" {...configureProps}>
+              Configure
+            </button>
+          )}
           <dialog ref={configDialogRef}>
-            {isConfiguring && selectedShape instanceof Square &&
-              createElement('square-config', { ref: squareConfigRef })}
-            {isConfiguring && selectedShape instanceof Circle &&
-              createElement('circle-config2', { ref: circleConfigRef })}
-              {// createElement('circle-config', {
-              //   ref: circleConfigRef,
-              //   config: JSON.stringify({radius: (selectedShape as Circle).radius, color: selectedShape.color }),
-                // save: (c: CircleConfigProps) => {
-                //   const index = shapes.indexOf(selectedShape);
-                //   const newShapes = [...shapes];
-                //   newShapes[index] = new Circle(c.radius, c.color);
-                //   setShapes(newShapes);
-                //   setSelectedShape(newShapes[index]);
-                //   setIsConfiguring(false);
-                //   configDialogRef.current?.close();
-                // }
-              //   save: 'globalHandle'
-              // })}
-              }
+            {isConfiguring && selectedShape instanceof Square && createElement(selectedShape.configComponent, { ref: squareConfigRef })}
+            {isConfiguring && selectedShape instanceof Circle && createElement(selectedShape.configComponent, { ref: circleConfigRef })}
           </dialog>
         </div>
       </div>

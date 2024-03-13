@@ -1,5 +1,7 @@
 import r2wc from "@r2wc/react-to-web-component";
 
+// This is just to demonstrate react-to-web-component
+
 export const Greeting = () => {
   return (
     <div>

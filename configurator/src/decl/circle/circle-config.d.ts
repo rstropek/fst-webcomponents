@@ -9,13 +9,13 @@ export declare const CircleConfig: ({ config, save }: {
 export type CircleConfigWithCallbacks = CircleConfigProps & {
     save: (config: CircleConfigProps) => void;
 };
-export declare class CircleConfigWC2 extends HTMLElement {
+export declare class CircleConfigWC extends HTMLElement {
     private _config;
     mountPoint: HTMLDivElement;
     root: any;
     constructor();
+    static register(): void;
     connectedCallback(): void;
     disconnectedCallback(): void;
     set config(newVal: CircleConfigWithCallbacks);
 }
-export declare const CircleConfigWC: CustomElementConstructor;

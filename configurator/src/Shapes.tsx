@@ -72,3 +72,12 @@ export class Circle extends Shape {
     );
   }
 }
+
+export function findFirstShapeAtPoint(shapes: Shape[], translations: Vector[], point: Vector) {
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    if (shapes[i].isInside(translations[i], point)) {
+      return shapes[i];
+    }
+  }
+  return null;
+}

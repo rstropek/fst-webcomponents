@@ -1,12 +1,21 @@
+/**
+ * Configuration data for a square
+ */
 export type SquareConfigProps = {
     size: number;
     color: string;
 };
 
+/**
+ * Configuration data for a square with save callback
+ */
 export type SquareConfigWithCallbacks = SquareConfigProps & {
     save: (config: SquareConfigProps) => void;
 };
 
+/**
+ * Custom element for configuring a square
+ */
 export class SquareConfig extends HTMLElement {
     private _config: SquareConfigWithCallbacks | undefined;
 
@@ -30,6 +39,7 @@ export class SquareConfig extends HTMLElement {
                     grid-template-columns: auto 1fr;
                     padding: 10px;
                     background-color: lightgray;
+                    grid-gap: 10px;
                 }
             </style>
             <form>
@@ -37,6 +47,7 @@ export class SquareConfig extends HTMLElement {
                 <input type="number" id="size" name="size" required />
                 <label for="color">Color:</label>
                 <input type="color" id="color" name="color" required />
+                <div></div>
                 <button type="button">Save</button>
             </form>
         `;
