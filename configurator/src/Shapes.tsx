@@ -53,7 +53,7 @@ export class Square extends Shape {
 export class Circle extends Shape {
   public configComponent = 'circle-config';
 
-  constructor(protected radius: number, color: string) {
+  constructor(public radius: number, color: string) {
     super(color);
   }
 

@@ -34,9 +34,9 @@ export class SquareConfig extends HTMLElement {
             </style>
             <form>
                 <label for="size">Size:</label>
-                <input type="number" id="size" name="size" required>
+                <input type="number" id="size" name="size" required />
                 <label for="color">Color:</label>
-                <input type="color" id="color" name="color" required>
+                <input type="color" id="color" name="color" required />
                 <button type="button">Save</button>
             </form>
         `;
@@ -77,30 +77,4 @@ export class SquareConfig extends HTMLElement {
         this.sizeInput.value = newVal.size.toString();
         this.colorInput.value = newVal.color;
     }
-
-    // static observedAttributes() {
-    //     return ['data'];
-    // }
-
-    // connectedCallback() {
-    //     this.render();
-    // }
-
-    // render() {
-    //     this.shadowRoot!.innerHTML = `
-    //         <p>Hello, World!!!</p>
-    //         <button>Open!</button>
-    //     `;
-    // }
-
-    // attributeChangedCallback(attrName: string, oldVal: any, newVal: any) {
-    //     console.log('attributeChangedCallback', attrName, oldVal, newVal);
-    // }
-
-    // public get data() {
-    //     return this.config;
-    // }
-    // public set data(newVal) {
-    //     this.config = newVal;
-    // }
 }

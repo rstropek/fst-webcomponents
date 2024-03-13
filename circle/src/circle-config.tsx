@@ -1,5 +1,6 @@
 import r2wc from "@r2wc/react-to-web-component";
 import { useState } from "react";
+import { createRoot } from 'react-dom/client';
 
 export type CircleConfigProps = {
   radius: number;
@@ -28,6 +29,38 @@ export const CircleConfig = ({config, save}: {config: CircleConfigProps, save: (
     </div>
   );
 };
+
+export type CircleConfigWithCallbacks = CircleConfigProps & {
+  save: (config: CircleConfigProps) => void;
+};
+
+export class CircleConfigWC2 extends HTMLElement {
+  private _config: CircleConfigWithCallbacks | undefined;
+  mountPoint: HTMLDivElement;
+  root: any;
+
+  constructor() {
+    super();
+    this.mountPoint = document.createElement('div');
+    this.root = createRoot(this.mountPoint);
+    this.attachShadow({mode: 'open'}).appendChild(this.mountPoint);
+  }
+
+  connectedCallback() {
+    //this.root.render(<CircleConfig config={this._config as CircleConfigProps} save={c => this._config?.save(c)}/>);
+  }
+
+  disconnectedCallback() {
+    this.root.unmount();
+  }
+
+  set config(newVal: CircleConfigWithCallbacks) {
+    this._config = newVal;
+    this.root.render(<CircleConfig config={this._config as CircleConfigProps} save={c => this._config?.save(c)}/>);
+  }
+}
+
+customElements.define("circle-config2", CircleConfigWC2);
 
 export const CircleConfigWC = r2wc(CircleConfig, {
   shadow: 'open',

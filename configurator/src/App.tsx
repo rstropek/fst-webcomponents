@@ -2,6 +2,8 @@ import { MouseEvent, createElement, useCallback, useRef, useState } from "react"
 import "./App.css";
 import { Circle, Shape, Square, Vector } from "./Shapes";
 import { SquareConfig } from "./decl/square";
+import { CircleConfigProps } from "./decl/circle";
+import { CircleConfigWC2 } from "./decl/circle/circle-config";
 
 function findFirstShapeAtPoint(shapes: Shape[], translations: Vector[], point: Vector) {
   for (let i = shapes.length - 1; i >= 0; i--) {
@@ -33,8 +35,7 @@ function App() {
   const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const configDialogRef = useRef<HTMLDialogElement>(null);
-  const configRef = useCallback((node: SquareConfig | null) => {
-    console.log(selectedShape);
+  const squareConfigRef = useCallback((node: SquareConfig | null) => {
     if (!selectedShape || !(selectedShape instanceof Square)) {
       setIsConfiguring(false);
       return;
@@ -54,6 +55,30 @@ function App() {
           configDialogRef.current?.close();
         }
       };
+      configDialogRef.current?.showModal();
+    }
+  }, [selectedShape, shapes]);
+  const circleConfigRef = useCallback((node: CircleConfigWC2 | null) => {
+    if (!selectedShape || !(selectedShape instanceof Circle)) {
+      setIsConfiguring(false);
+      return;
+    }
+
+    if (node) {
+      node.config = {
+        radius: (selectedShape as Circle).radius,
+        color: (selectedShape as Circle).color,
+        save: c => {
+          const index = shapes.indexOf(selectedShape);
+          const newShapes = [...shapes];
+          newShapes[index] = new Circle(c.radius, c.color);
+          setShapes(newShapes);
+          setSelectedShape(newShapes[index]);
+          setIsConfiguring(false);
+          configDialogRef.current?.close();
+        }
+      };
+
       configDialogRef.current?.showModal();
     }
   }, [selectedShape, shapes]);
@@ -104,6 +129,10 @@ function App() {
     },
   };
 
+  (window as any).globalHandle = function(x: any) {
+    console.log(x);
+  };
+
   return (
     <div className="App">
       <h1>Configurator</h1>
@@ -119,8 +148,25 @@ function App() {
           {createElement('web-greeting')}
           {selectedShape && <button type="button" {...configureProps}>Configure</button>}
           <dialog ref={configDialogRef}>
-            {isConfiguring && selectedShape &&
-              createElement(selectedShape.configComponent, { ref: configRef })}
+            {isConfiguring && selectedShape instanceof Square &&
+              createElement('square-config', { ref: squareConfigRef })}
+            {isConfiguring && selectedShape instanceof Circle &&
+              createElement('circle-config2', { ref: circleConfigRef })}
+              {// createElement('circle-config', {
+              //   ref: circleConfigRef,
+              //   config: JSON.stringify({radius: (selectedShape as Circle).radius, color: selectedShape.color }),
+                // save: (c: CircleConfigProps) => {
+                //   const index = shapes.indexOf(selectedShape);
+                //   const newShapes = [...shapes];
+                //   newShapes[index] = new Circle(c.radius, c.color);
+                //   setShapes(newShapes);
+                //   setSelectedShape(newShapes[index]);
+                //   setIsConfiguring(false);
+                //   configDialogRef.current?.close();
+                // }
+              //   save: 'globalHandle'
+              // })}
+              }
           </dialog>
         </div>
       </div>
