@@ -6,10 +6,10 @@
   "module": "dist/esm/index.js",
   "types": "decl/index.d.ts",
   "dependencies": {
+    "@r2wc/react-to-web-component": "^2.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "react-to-webcomponent": "^2.0.0"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "build": "tsc && copyfiles ./decl/**/*.d.ts ../configurator/src",
