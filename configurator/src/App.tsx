@@ -188,8 +188,8 @@ function App() {
             </button>
           )}
           <dialog ref={configDialogRef}>
-            {isConfiguring && selectedShape instanceof Square && createElement(selectedShape.configComponent, { ref: squareConfigRef })}
-            {isConfiguring && selectedShape instanceof Circle && createElement(selectedShape.configComponent, { ref: circleConfigRef })}
+            {isConfiguring && selectedShape instanceof Square && createElement('square-config', { ref: squareConfigRef })}
+            {isConfiguring && selectedShape instanceof Circle && createElement('circle-config', { ref: circleConfigRef })}
           </dialog>
         </div>
       </div>
